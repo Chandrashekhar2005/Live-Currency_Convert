@@ -4,6 +4,34 @@ import { FALLBACK_USD_RATES } from '../data/currencies';
 const CACHE_KEY_PREFIX = 'fx_rates_cache_';
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes cache
 
+export function getInitialRates(baseCurrency: string = 'USD'): ExchangeRatesData {
+  const base = baseCurrency.toUpperCase();
+  const cacheKey = `${CACHE_KEY_PREFIX}${base}`;
+
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      const parsed: ExchangeRatesData = JSON.parse(cached);
+      return { ...parsed, source: 'cache' };
+    }
+  } catch {}
+
+  const baseToUsdRate = FALLBACK_USD_RATES[base] || 1;
+  const computedRates: Record<string, number> = {};
+
+  for (const [code, usdRate] of Object.entries(FALLBACK_USD_RATES)) {
+    computedRates[code] = usdRate / baseToUsdRate;
+  }
+
+  return {
+    base,
+    date: new Date().toISOString().split('T')[0],
+    timeLastUpdateUtc: 'Market Reference',
+    rates: computedRates,
+    source: 'fallback',
+  };
+}
+
 export async function fetchLiveRates(baseCurrency: string = 'USD'): Promise<ExchangeRatesData> {
   const base = baseCurrency.toUpperCase();
   const cacheKey = `${CACHE_KEY_PREFIX}${base}`;

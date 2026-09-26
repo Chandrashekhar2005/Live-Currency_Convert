@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import {
   Coins,
   ArrowLeftRight,
@@ -14,20 +14,36 @@ import {
 } from 'lucide-react';
 import { Currency, ExchangeRatesData, ConversionRecord } from './types/currency';
 import { UNIQUE_CURRENCIES } from './data/currencies';
-import { fetchLiveRates, calculateRate } from './services/exchangeRates';
+import { fetchLiveRates, calculateRate, getInitialRates } from './services/exchangeRates';
 import { Header } from './components/Header';
 import { ConverterCard } from './components/ConverterCard';
-import { MultiCurrencyComparison } from './components/MultiCurrencyComparison';
-import { ExchangeRateTrend } from './components/ExchangeRateTrend';
-import { TravelFeeCalculator } from './components/TravelFeeCalculator';
-import { DenominationCheatSheet } from './components/DenominationCheatSheet';
-import { CurrencySelectorModal } from './components/CurrencySelectorModal';
-import { ConversionHistoryDrawer } from './components/ConversionHistoryDrawer';
 import { Toast } from './components/Toast';
 import { SeoContentHome } from './components/SeoContentHome';
-import { CurrencyPairPage } from './components/CurrencyPairPage';
 import { SEO_CURRENCY_PAIRS, getCurrencyPairBySlug } from './data/seoPairs';
 import { updatePageMeta, HOME_PAGE_META } from './utils/seo';
+
+// Lazy load below-the-fold tab features and secondary routes to minimize initial bundle size and speed up LCP
+const MultiCurrencyComparison = lazy(() =>
+  import('./components/MultiCurrencyComparison').then((m) => ({ default: m.MultiCurrencyComparison }))
+);
+const ExchangeRateTrend = lazy(() =>
+  import('./components/ExchangeRateTrend').then((m) => ({ default: m.ExchangeRateTrend }))
+);
+const TravelFeeCalculator = lazy(() =>
+  import('./components/TravelFeeCalculator').then((m) => ({ default: m.TravelFeeCalculator }))
+);
+const DenominationCheatSheet = lazy(() =>
+  import('./components/DenominationCheatSheet').then((m) => ({ default: m.DenominationCheatSheet }))
+);
+const CurrencySelectorModal = lazy(() =>
+  import('./components/CurrencySelectorModal').then((m) => ({ default: m.CurrencySelectorModal }))
+);
+const ConversionHistoryDrawer = lazy(() =>
+  import('./components/ConversionHistoryDrawer').then((m) => ({ default: m.ConversionHistoryDrawer }))
+);
+const CurrencyPairPage = lazy(() =>
+  import('./components/CurrencyPairPage').then((m) => ({ default: m.CurrencyPairPage }))
+);
 
 const POPULAR_NAV_PAIRS = [
   { from: 'USD', to: 'INR', path: '/currency-converter/usd-to-inr' },
@@ -76,8 +92,10 @@ export default function App() {
   });
 
   const [baseAmount, setBaseAmount] = useState<number>(100);
-  const [ratesData, setRatesData] = useState<ExchangeRatesData | null>(null);
-  const [isLoadingRates, setIsLoadingRates] = useState<boolean>(true);
+  const [ratesData, setRatesData] = useState<ExchangeRatesData>(() => {
+    return getInitialRates(fromCurrency.code);
+  });
+  const [isLoadingRates, setIsLoadingRates] = useState<boolean>(false);
 
   // Modals state
   const [isFromModalOpen, setIsFromModalOpen] = useState(false);
@@ -242,21 +260,23 @@ export default function App() {
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         {activePairData ? (
           /* Render Currency-Specific SEO Page */
-          <CurrencyPairPage
-            pairData={activePairData}
-            fromCurrency={fromCurrency}
-            toCurrency={toCurrency}
-            ratesData={ratesData}
-            isLoadingRates={isLoadingRates}
-            onRefreshRates={() => loadRates(fromCurrency.code)}
-            onSwapCurrencies={handleSwap}
-            onOpenFromModal={() => setIsFromModalOpen(true)}
-            onOpenToModal={() => setIsToModalOpen(true)}
-            onShowToast={showToast}
-            onAddToHistory={handleAddToHistory}
-            onNavigate={handleNavigate}
-            currentRate={currentRate}
-          />
+          <Suspense fallback={<div className="p-12 text-center text-sm font-semibold text-slate-400 animate-pulse">Loading currency conversion...</div>}>
+            <CurrencyPairPage
+              pairData={activePairData}
+              fromCurrency={fromCurrency}
+              toCurrency={toCurrency}
+              ratesData={ratesData}
+              isLoadingRates={isLoadingRates}
+              onRefreshRates={() => loadRates(fromCurrency.code)}
+              onSwapCurrencies={handleSwap}
+              onOpenFromModal={() => setIsFromModalOpen(true)}
+              onOpenToModal={() => setIsToModalOpen(true)}
+              onShowToast={showToast}
+              onAddToHistory={handleAddToHistory}
+              onNavigate={handleNavigate}
+              currentRate={currentRate}
+            />
+          </Suspense>
         ) : (
           /* Render Homepage View */
           <>
@@ -389,42 +409,44 @@ export default function App() {
 
             {/* Active Tab View Panels */}
             <div className="transition-all">
-              {activeTab === 'watchlist' && (
-                <MultiCurrencyComparison
-                  baseCurrency={fromCurrency}
-                  baseAmount={baseAmount}
-                  ratesData={ratesData}
-                  onSelectAsTarget={(target) => {
-                    setToCurrency(target);
-                    showToast(`Set ${target.code} (${target.countryName}) as target`);
-                  }}
-                />
-              )}
+              <Suspense fallback={<div className="p-8 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-200/80 animate-pulse">Loading analysis tool...</div>}>
+                {activeTab === 'watchlist' && (
+                  <MultiCurrencyComparison
+                    baseCurrency={fromCurrency}
+                    baseAmount={baseAmount}
+                    ratesData={ratesData}
+                    onSelectAsTarget={(target) => {
+                      setToCurrency(target);
+                      showToast(`Set ${target.code} (${target.countryName}) as target`);
+                    }}
+                  />
+                )}
 
-              {activeTab === 'trends' && (
-                <ExchangeRateTrend
-                  fromCurrency={fromCurrency}
-                  toCurrency={toCurrency}
-                  currentRate={currentRate}
-                />
-              )}
+                {activeTab === 'trends' && (
+                  <ExchangeRateTrend
+                    fromCurrency={fromCurrency}
+                    toCurrency={toCurrency}
+                    currentRate={currentRate}
+                  />
+                )}
 
-              {activeTab === 'fees' && (
-                <TravelFeeCalculator
-                  fromCurrency={fromCurrency}
-                  toCurrency={toCurrency}
-                  baseAmount={baseAmount}
-                  currentRate={currentRate}
-                />
-              )}
+                {activeTab === 'fees' && (
+                  <TravelFeeCalculator
+                    fromCurrency={fromCurrency}
+                    toCurrency={toCurrency}
+                    baseAmount={baseAmount}
+                    currentRate={currentRate}
+                  />
+                )}
 
-              {activeTab === 'matrix' && (
-                <DenominationCheatSheet
-                  fromCurrency={fromCurrency}
-                  toCurrency={toCurrency}
-                  currentRate={currentRate}
-                />
-              )}
+                {activeTab === 'matrix' && (
+                  <DenominationCheatSheet
+                    fromCurrency={fromCurrency}
+                    toCurrency={toCurrency}
+                    currentRate={currentRate}
+                  />
+                )}
+              </Suspense>
             </div>
 
             {/* High-Quality Semantic SEO Content Sections on Homepage */}
@@ -448,8 +470,12 @@ export default function App() {
                 className="font-bold text-slate-900 text-sm hover:text-emerald-700 transition-colors inline-flex items-center gap-1.5"
               >
                 <img
-                  src="/app-icon.jpg"
+                  src="/app-icon-header.webp"
                   alt="Global FX"
+                  width={20}
+                  height={20}
+                  loading="lazy"
+                  decoding="async"
                   className="w-5 h-5 rounded-md object-cover flex-shrink-0"
                   referrerPolicy="no-referrer"
                 />
@@ -505,37 +531,49 @@ export default function App() {
       </footer>
 
       {/* Currency Picker Modal for FROM */}
-      <CurrencySelectorModal
-        isOpen={isFromModalOpen}
-        onClose={() => setIsFromModalOpen(false)}
-        selectedCode={fromCurrency.code}
-        onSelect={(selected) => {
-          setFromCurrency(selected);
-          showToast(`Selected ${selected.code} (${selected.countryName}) as base`);
-        }}
-        title="Select Base Currency (From)"
-      />
+      {isFromModalOpen && (
+        <Suspense fallback={null}>
+          <CurrencySelectorModal
+            isOpen={isFromModalOpen}
+            onClose={() => setIsFromModalOpen(false)}
+            selectedCode={fromCurrency.code}
+            onSelect={(selected) => {
+              setFromCurrency(selected);
+              showToast(`Selected ${selected.code} (${selected.countryName}) as base`);
+            }}
+            title="Select Base Currency (From)"
+          />
+        </Suspense>
+      )}
 
       {/* Currency Picker Modal for TO */}
-      <CurrencySelectorModal
-        isOpen={isToModalOpen}
-        onClose={() => setIsToModalOpen(false)}
-        selectedCode={toCurrency.code}
-        onSelect={(selected) => {
-          setToCurrency(selected);
-          showToast(`Selected ${selected.code} (${selected.countryName}) as target`);
-        }}
-        title="Select Target Currency (To)"
-      />
+      {isToModalOpen && (
+        <Suspense fallback={null}>
+          <CurrencySelectorModal
+            isOpen={isToModalOpen}
+            onClose={() => setIsToModalOpen(false)}
+            selectedCode={toCurrency.code}
+            onSelect={(selected) => {
+              setToCurrency(selected);
+              showToast(`Selected ${selected.code} (${selected.countryName}) as target`);
+            }}
+            title="Select Target Currency (To)"
+          />
+        </Suspense>
+      )}
 
       {/* Conversion History Drawer */}
-      <ConversionHistoryDrawer
-        isOpen={isHistoryOpen}
-        onClose={() => setIsHistoryOpen(false)}
-        history={history}
-        onClearHistory={handleClearHistory}
-        onApplyHistory={handleApplyHistory}
-      />
+      {isHistoryOpen && (
+        <Suspense fallback={null}>
+          <ConversionHistoryDrawer
+            isOpen={isHistoryOpen}
+            onClose={() => setIsHistoryOpen(false)}
+            history={history}
+            onClearHistory={handleClearHistory}
+            onApplyHistory={handleApplyHistory}
+          />
+        </Suspense>
+      )}
 
       {/* Toast Notification */}
       <Toast message={toastMessage} onClose={() => setToastMessage(null)} />

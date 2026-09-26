@@ -48,8 +48,12 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform flex-shrink-0 bg-emerald-800">
             <img
-              src="/app-icon.jpg"
+              src="/app-icon-header.webp"
               alt="Global FX Currency Converter Icon"
+              width={40}
+              height={40}
+              fetchPriority="high"
+              decoding="async"
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
             />

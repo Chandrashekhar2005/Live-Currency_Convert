@@ -5,13 +5,24 @@ interface CurrencyFlagProps {
   flagEmoji: string;
   className?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  priority?: boolean;
+  loading?: 'lazy' | 'eager';
 }
+
+const SIZE_DIMENSIONS = {
+  sm: { width: 16, height: 12 },
+  md: { width: 24, height: 18 },
+  lg: { width: 32, height: 24 },
+  xl: { width: 40, height: 30 },
+};
 
 export const CurrencyFlag: React.FC<CurrencyFlagProps> = ({
   countryCode,
   flagEmoji,
   className = '',
   size = 'md',
+  priority = false,
+  loading,
 }) => {
   const [imgError, setImgError] = useState(false);
 
@@ -37,12 +48,19 @@ export const CurrencyFlag: React.FC<CurrencyFlagProps> = ({
     );
   }
 
+  const { width, height } = SIZE_DIMENSIONS[size] || SIZE_DIMENSIONS.md;
+  const imgLoading = priority ? 'eager' : (loading || 'lazy');
+
   return (
     <span className={`inline-flex items-center justify-center overflow-hidden rounded-[3px] shadow-xs border border-black/10 shrink-0 ${sizeClasses[size]} ${className}`}>
       <img
         src={`https://flagcdn.com/w80/${code}.png`}
         alt={flagEmoji}
-        loading="lazy"
+        width={width}
+        height={height}
+        loading={imgLoading}
+        fetchPriority={priority ? 'high' : 'auto'}
+        decoding={priority ? 'sync' : 'async'}
         referrerPolicy="no-referrer"
         className="w-full h-full object-cover"
         onError={() => setImgError(true)}

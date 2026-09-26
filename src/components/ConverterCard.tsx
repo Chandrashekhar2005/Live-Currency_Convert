@@ -133,6 +133,7 @@ export const ConverterCard: React.FC<ConverterCardProps> = ({
                   countryCode={fromCurrency.countryCode}
                   flagEmoji={fromCurrency.flagEmoji}
                   size="md"
+                  priority
                 />
                 <div className="text-left">
                   <span className="text-sm font-bold block leading-none text-slate-900">
@@ -189,6 +190,7 @@ export const ConverterCard: React.FC<ConverterCardProps> = ({
                   countryCode={toCurrency.countryCode}
                   flagEmoji={toCurrency.flagEmoji}
                   size="md"
+                  priority
                 />
                 <div className="text-left">
                   <span className="text-sm font-bold block leading-none text-slate-900">
