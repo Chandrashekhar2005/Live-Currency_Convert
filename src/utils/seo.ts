@@ -36,7 +36,7 @@ export function updatePageMeta(options: PageMetaOptions) {
   setMeta('meta[property="og:title"]', 'property', 'og:title', options.ogTitle || options.title);
   setMeta('meta[property="og:description"]', 'property', 'og:description', options.ogDescription || options.description);
   setMeta('meta[property="og:url"]', 'property', 'og:url', options.ogUrl || options.canonicalUrl);
-  setMeta('meta[property="og:site_name"]', 'property', 'og:site_name', 'Global FX');
+  setMeta('meta[property="og:site_name"]', 'property', 'og:site_name', 'Currency Converter');
 
   // Twitter
   setMeta('meta[name="twitter:card"]', 'name', 'twitter:card', 'summary');
@@ -111,11 +111,11 @@ export const HOME_PAGE_FAQS = [
 export const HOME_PAGE_META: PageMetaOptions = {
   title: 'Live Currency Converter – Convert 170+ Currencies',
   description: 'Free live currency converter to convert 170+ currencies with up-to-date exchange rates. Fast, simple and easy to use.',
-  canonicalUrl: 'https://currency-converter2-omega.vercel.app/',
+  canonicalUrl: 'https://currency-converter2-zipd.vercel.app/',
   ogTitle: 'Live Currency Converter – Convert 170+ Currencies',
   ogDescription: 'Free live currency converter supporting 170+ currencies with easy and fast currency conversion.',
-  ogUrl: 'https://currency-converter2-omega.vercel.app/',
-  twitterTitle: 'Live Currency Converter – Global FX',
-  twitterDescription: 'Convert 170+ currencies quickly with Global FX.',
+  ogUrl: 'https://currency-converter2-zipd.vercel.app/',
+  twitterTitle: 'Live Currency Converter – Convert 170+ Currencies',
+  twitterDescription: 'Free live currency converter supporting 170+ currencies with easy and fast currency conversion.',
   faqSchema: HOME_PAGE_FAQS,
 };

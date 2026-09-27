@@ -168,10 +168,10 @@ export default function App() {
       updatePageMeta({
         title: pair.title,
         description: pair.metaDescription,
-        canonicalUrl: `https://currency-converter2-omega.vercel.app${pair.path}`,
+        canonicalUrl: `https://currency-converter2-zipd.vercel.app${pair.path}`,
         ogTitle: pair.title,
         ogDescription: pair.metaDescription,
-        ogUrl: `https://currency-converter2-omega.vercel.app${pair.path}`,
+        ogUrl: `https://currency-converter2-zipd.vercel.app${pair.path}`,
         twitterTitle: pair.title,
         twitterDescription: pair.metaDescription,
         faqSchema: pair.faq,
