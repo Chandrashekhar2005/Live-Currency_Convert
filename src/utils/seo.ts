@@ -37,6 +37,8 @@ export function updatePageMeta(options: PageMetaOptions) {
   setMeta('meta[property="og:description"]', 'property', 'og:description', options.ogDescription || options.description);
   setMeta('meta[property="og:url"]', 'property', 'og:url', options.ogUrl || options.canonicalUrl);
   setMeta('meta[property="og:site_name"]', 'property', 'og:site_name', 'Currency Converter');
+  setMeta('meta[name="application-name"]', 'name', 'application-name', 'Currency Converter');
+  setMeta('meta[name="apple-mobile-web-app-title"]', 'name', 'apple-mobile-web-app-title', 'Currency Converter');
 
   // Twitter
   setMeta('meta[name="twitter:card"]', 'name', 'twitter:card', 'summary');
